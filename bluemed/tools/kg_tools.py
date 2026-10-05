@@ -82,7 +82,9 @@ def kg_search(entity: str, relation: str, direction: str = "forward", limit: int
     if not rows:
         return f"{note}「{link.matched}」没有 {relation}（{RELATION_CN[relation]}）类型的关系，可以换一种关系或用 expand_multi_hop 扩展。", []
     evidence = [Evidence.make("triple", r["s"], relation, r["t"]) for r in rows]
-    return note + "\n".join(e.to_text() for e in evidence), evidence
+    # 明确告诉模型结果是否完整：否则只返回 4 条时，模型会怀疑被截断而加大 limit 重查一次
+    total = "（已返回全部结果）" if len(rows) < limit else f"（只显示前 {limit} 条，可能还有更多）"
+    return note + "\n".join(e.to_text() for e in evidence) + f"\n共 {len(rows)} 条{total}", evidence
 
 
 # ---------------------------------------------------------------- get_disease_info
@@ -165,4 +167,32 @@ def expand_multi_hop(entity: str, question: str, top_k: int = 5, per_node: int =
     return "\n".join(f"{e.to_text()}（第{e.hop}跳）" for e in items), items
 
 
-KG_TOOLS = [link_entity, kg_search, get_disease_info, expand_multi_hop]
+# ---------------------------------------------------------------- find_diseases_by_symptoms
+class SymptomsArgs(BaseModel):
+    symptoms: list[str] = Field(description="用户描述的症状，如 [\"头痛\", \"发烧\"]", min_length=1, max_length=6)
+    limit: int = Field(10, ge=1, le=20, description="最多返回几个疾病")
+
+
+@tool(args_schema=SymptomsArgs, response_format="content_and_artifact")
+def find_diseases_by_symptoms(symptoms: list[str], limit: int = 10):
+    """根据多个症状反查疾病，按命中的症状数量从多到少排序（同时具备的症状越多越靠前）。
+    用户描述了两个及以上症状、问"可能是什么病"时，优先用它，不要逐个疾病去核对。"""
+    # 设计动机：Phase 2 中 Agent 用"分别反查每个症状 + 逐个疾病核对"来求交集，5 次调用都不够、结果靠运气；
+    # 求交集是确定性操作，一条 Cypher 就能完成，于是封装成工具
+    linked = {s: _link(s, "Symptom").matched or _link(s).matched for s in symptoms}
+    names = [n for n in linked.values() if n]
+    if not names:
+        return f"图谱中没有找到这些症状：{'、'.join(symptoms)}。", []
+    rows = run_read(
+        "UNWIND $names AS s MATCH (d:Disease)-[:HAS_SYMPTOM]->(x {name: s}) "
+        "WITH d, collect(DISTINCT x.name) AS hit RETURN d.name AS d, hit ORDER BY size(hit) DESC, d.name LIMIT $limit",
+        names=names, limit=limit)
+    evidence = [Evidence.make("triple", r["d"], "HAS_SYMPTOM", s, score=len(r["hit"]) / len(names))
+                for r in rows for s in r["hit"]]
+    mapping = "、".join(f"{k}→{v}" for k, v in linked.items() if v and v != k)
+    lines = [f"命中 {len(r['hit'])}/{len(names)} 个症状：{r['d']}（{'、'.join(r['hit'])}）" for r in rows]
+    head = f"（症状链接：{mapping}）\n" if mapping else ""
+    return head + "\n".join(lines) + "\n" + "\n".join(e.to_text() for e in evidence), evidence
+
+
+KG_TOOLS = [link_entity, kg_search, get_disease_info, expand_multi_hop, find_diseases_by_symptoms]
