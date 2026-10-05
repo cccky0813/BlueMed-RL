@@ -10,10 +10,10 @@ load_dotenv(ROOT / ".env")
 
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+LLM_MODEL = os.getenv("LLM_MODEL", "deepseek-flash")
 
 PARSER_BASE_URL = os.getenv("PARSER_BASE_URL", "http://localhost:8080/v1")
 
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "123456789")
