@@ -56,3 +56,19 @@ class LinkResult(BaseModel):
     node_type: str | None = None
     score: float = 0.0
     method: Literal["exact", "fuzzy", "none"] = "none"
+
+
+class Answer(BaseModel):
+    """Answer Generator 的结构化输出。"""
+    answer: str = Field(description="给用户的回答。每个事实性陈述后面标注引用的证据编号，如 [E3c9314]；可分点")
+    citations: list[str] = Field(description="回答中引用的所有证据编号，如 [\"E3c9314\"]")
+    safety_notice: str = Field(description="安全提示：涉及诊断时建议就医，涉及用药时提醒遵医嘱；无需提示时为空字符串")
+    insufficient: bool = Field(description="证据不足以回答用户问题时为 true")
+
+
+class Review(BaseModel):
+    """Answer Reviewer 的审核结论。"""
+    verdict: Literal["pass", "rewrite", "need_evidence"] = Field(
+        description="pass：可以发布；rewrite：回答有证据不支持的内容或表述问题，需要重写；need_evidence：证据不够回答问题，需要补充检索")
+    reason: str = Field(description="判断理由，具体指出问题所在")
+    missing: str = Field("", description="verdict 为 need_evidence 时，说明还需要查什么")
