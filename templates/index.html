@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlueMedical v2</title>
+<style>
+  :root { --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb; --brand:#2563eb; --user:#e0ecff; --warn:#b45309; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:14px 20px; background:var(--card); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  header h1 { margin:0; font-size:18px; } header small { color:var(--muted); }
+  main { display:grid; grid-template-columns: 1.3fr 1fr; gap:16px; padding:16px; height:calc(100vh - 58px); }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; display:flex; flex-direction:column; min-height:0; }
+  .panel h2 { margin:0; padding:12px 16px; font-size:14px; border-bottom:1px solid var(--line); color:var(--muted); }
+  #chat, #trace { flex:1; overflow:auto; padding:16px; }
+  .msg { margin-bottom:14px; max-width:92%; padding:10px 14px; border-radius:12px; white-space:pre-wrap; line-height:1.6; font-size:14px; }
+  .user { background:var(--user); margin-left:auto; }
+  .bot { background:#f9fafb; border:1px solid var(--line); }
+  .bot .safety { color:var(--warn); margin-top:8px; font-size:13px; }
+  .bot details { margin-top:8px; font-size:12px; color:var(--muted); } .bot img, .user img { max-width:220px; border-radius:8px; display:block; margin-top:6px; }
+  .step { border-left:3px solid var(--brand); padding:6px 10px; margin-bottom:10px; font-size:13px; white-space:pre-wrap; background:#f9fafb; border-radius:0 8px 8px 0; }
+  .step b { display:block; color:var(--brand); margin-bottom:2px; } .turn { color:var(--muted); font-size:12px; margin:14px 0 8px; }
+  form { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); align-items:center; }
+  input[type=text] { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
+  button, label.btn { padding:9px 14px; border:0; border-radius:8px; background:var(--brand); color:#fff; cursor:pointer; font-size:14px; }
+  label.btn { background:#64748b; } button:disabled { opacity:.5; cursor:default; }
+  #preview { font-size:12px; color:var(--muted); }
+  @media (max-width: 800px) { main { grid-template-columns:1fr; height:auto; } #chat, #trace { max-height:60vh; } }
+</style>
+</head>
+<body>
+<header><h1>BlueMedical v2 · 多 Agent 医疗问答</h1>
+  <div><small id="profile">用户档案：（暂无）</small> <button id="newchat" style="margin-left:8px;background:#64748b">新会话</button></div></header>
+<main>
+  <section class="panel"><h2>对话</h2><div id="chat"></div>
+    <form id="form">
+      <label class="btn">图片<input id="file" type="file" accept="image/*" hidden></label>
+      <span id="preview"></span>
+      <input id="q" type="text" placeholder="例如：我爸有痛风，平时饮食上有什么忌口？" autocomplete="off">
+      <button id="send">发送</button>
+    </form>
+  </section>
+  <section class="panel"><h2>Agent 轨迹（实时）</h2><div id="trace"></div></section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+let threadId = localStorage.getItem("thread") || crypto.randomUUID(); localStorage.setItem("thread", threadId);
+let imageId = null, imageUrl = null, turn = 0;
+
+$("#newchat").onclick = () => { threadId = crypto.randomUUID(); localStorage.setItem("thread", threadId);
+  $("#chat").innerHTML = ""; $("#trace").innerHTML = ""; turn = 0; };
+
+$("#file").onchange = async e => {
+  const fd = new FormData(); fd.append("image", e.target.files[0]);
+  const r = await (await fetch("/upload_image", {method: "POST", body: fd})).json();
+  if (r.error) { alert(r.error); return; }
+  imageId = r.image_id; imageUrl = r.url; $("#preview").textContent = "已附加 " + imageId;
+};
+
+function add(cls, html) { const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html;
+  $("#chat").appendChild(d); $("#chat").scrollTop = 1e9; return d; }
+const esc = s => (s || "").replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+
+$("#form").onsubmit = async e => {
+  e.preventDefault(); const q = $("#q").value.trim(); if (!q) return;
+  $("#send").disabled = true; $("#q").value = "";
+  add("user", esc(q) + (imageUrl ? `<img src="${imageUrl}">` : ""));
+  const pending = add("bot", "思考中…");
+  $("#trace").insertAdjacentHTML("beforeend", `<div class="turn">—— 第 ${++turn} 轮：${esc(q)}</div>`);
+  const resp = await fetch("/ask", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({question: q, image_id: imageId, thread_id: threadId})});
+  imageId = imageUrl = null; $("#preview").textContent = "";
+  const reader = resp.body.getReader(), dec = new TextDecoder(); let buf = "";
+  while (true) {
+    const {value, done} = await reader.read(); if (done) break;
+    buf += dec.decode(value, {stream: true});
+    const parts = buf.split("\n\n"); buf = parts.pop();
+    for (const p of parts) {
+      if (!p.startsWith("data: ")) continue;
+      const ev = JSON.parse(p.slice(6));
+      if (ev.type === "step") {
+        $("#trace").insertAdjacentHTML("beforeend", `<div class="step"><b>${ev.node}</b>${esc(ev.text)}</div>`);
+        $("#trace").scrollTop = 1e9;
+      } else if (ev.type === "answer") {
+        pending.innerHTML = esc(ev.answer)
+          + (ev.segmented ? `<img src="${ev.segmented}" title="FastSAM 分割结果">` : "")
+          + (ev.safety ? `<div class="safety">⚠️ ${esc(ev.safety)}</div>` : "")
+          + (ev.evidence.length ? `<details><summary>引用证据（${ev.evidence.length}）</summary>${ev.evidence.map(esc).join("<br>")}</details>` : "");
+        const p2 = ev.profile || {};
+        $("#profile").textContent = "用户档案：" + ([p2.subject, ...(p2.conditions || []), ...(p2.allergies || []).map(a => a + "过敏")].filter(Boolean).join("、") || "（暂无）");
+      } else if (ev.type === "error") { pending.textContent = "出错了：" + ev.text; }
+    }
+  }
+  $("#send").disabled = false; $("#q").focus();
+};
+</script>
+</body>
+</html>

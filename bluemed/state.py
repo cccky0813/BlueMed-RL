@@ -20,6 +20,7 @@ def merge_evidence(old: dict[str, Evidence], new: dict[str, Evidence]) -> dict[s
 class AgentState(TypedDict, total=False):
     # ---- 本轮输入（Parser 写入）
     user_input: str                                                # 用户原话
+    image_id: str | None                                           # 本轮上传的图片编号（没有为 None；每轮由调用方传入）
     question: str                                                  # Parser 改写后、能独立理解的问题（后续 Agent 都用它）
     parsed: dict                                                   # LoRA 解析模型抽取的实体 / 关系（给 Expert 的线索）
     category: str                                                  # medical / emergency / out_of_scope / injection

@@ -1,0 +1,21 @@
+# BlueMedical v2 主要依赖（Python 3.11）
+langgraph==1.2.12
+langchain-core==1.6.6
+langchain-openai==1.6.7
+pydantic==2.13.5
+python-dotenv==1.2.4
+neo4j==6.3.1
+sentence-transformers          # m3e-base 向量
+torch
+torchvision
+opencv-python                  # FastSAM（third_party/ 中的旧版 ultralytics）
+matplotlib
+pandas
+seaborn
+psutil
+py-cpuinfo
+thop
+setuptools<81                  # 旧版 ultralytics 依赖 pkg_resources
+flask
+requests
+pytest

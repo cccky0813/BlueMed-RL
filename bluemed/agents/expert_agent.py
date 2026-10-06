@@ -12,14 +12,17 @@ from langgraph.graph import END, START, StateGraph
 
 from bluemed.llm import get_llm
 from bluemed.state import AgentState
+from bluemed.tools.image_tools import analyze_image
 from bluemed.tools.kg_tools import KG_TOOLS
 
 MAX_TOOL_CALLS = 5
-TOOLS_BY_NAME = {t.name: t for t in KG_TOOLS}
+EXPERT_TOOLS = KG_TOOLS + [analyze_image]
+TOOLS_BY_NAME = {t.name: t for t in EXPERT_TOOLS}
 
 EXPERT_PROMPT = f"""你是医学知识专家（Expert Agent），负责为用户问题从医疗知识图谱中收集证据，不负责写最终回答。
 
 查询策略：
+0. 如果用户上传了图片（消息里会给出 image_id），先调用 analyze_image，再根据返回的影像所见和关键词，用图谱工具查询相关知识。
 1. 先想清楚问题需要什么信息，选最直接的工具：
    - 疾病的症状、检查、用药、饮食、科室、治疗、并发症 → kg_search（forward）
    - 用户描述了多个症状，问可能是什么病 → find_diseases_by_symptoms（一次求交集，不要逐个疾病核对）
@@ -39,7 +42,7 @@ EXPERT_PROMPT = f"""你是医学知识专家（Expert Agent），负责为用户
 def expert_node(state: AgentState) -> dict:
     """思考：模型看到问题和之前所有的工具结果，决定继续调用工具还是结束。"""
     # 次数用完时不再提供工具，模型只能根据已有证据写总结（否则可能停在"想调工具却被拒绝"的状态）
-    llm = get_llm() if state.get("tool_calls", 0) >= MAX_TOOL_CALLS else get_llm().bind_tools(KG_TOOLS)
+    llm = get_llm() if state.get("tool_calls", 0) >= MAX_TOOL_CALLS else get_llm().bind_tools(EXPERT_TOOLS)
     first = [] if state.get("messages") else [("user", _first_message(state))]
     reply = llm.invoke([SystemMessage(EXPERT_PROMPT)] + (state.get("messages") or []) + first)
     return {"messages": first + [reply]}
@@ -53,7 +56,8 @@ def _first_message(state: AgentState) -> str:
         ents = "、".join(f"{e['name']}({e.get('type', '')})" for e in parsed.get("entities", []))
         rels = "、".join(r["type"] for r in parsed.get("relations", []))
         hint = f"\n（解析线索，仅供参考：实体 {ents or '无'}；关系 {rels or '未识别'}）"
-    return state["question"] + hint
+    image = f"\n（用户上传了一张医学影像，image_id={state['image_id']}）" if state.get("image_id") else ""
+    return state["question"] + image + hint
 
 
 def tools_node(state: AgentState) -> dict:

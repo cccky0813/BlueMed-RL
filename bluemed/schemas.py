@@ -31,7 +31,7 @@ FIELD_CN = {
 class Evidence(BaseModel):
     """一条证据：一个三元组，或一个疾病属性。id 由内容决定，同一条事实无论被哪个工具查到，id 都相同。"""
     id: str
-    kind: Literal["triple", "attribute"]
+    kind: Literal["triple", "attribute", "image"]
     subject: str
     predicate: str          # 关系类型（triple）或属性名（attribute）
     object: str
@@ -47,6 +47,8 @@ class Evidence(BaseModel):
         """给模型看的一行文字。"""
         if self.kind == "attribute":
             return f"[{self.id}] {self.subject}的{FIELD_CN.get(self.predicate, self.predicate)}：{self.object}"
+        if self.kind == "image":
+            return f"[{self.id}] 影像 {self.subject} 的{self.predicate}：{self.object}"
         return f"[{self.id}] {self.subject} -{self.predicate}-> {self.object}"
 
 
@@ -90,3 +92,11 @@ class ParsedQuery(BaseModel):
                                                 "把代词（他、这个病）替换成具体对象")
     profile_update: ProfileUpdate = Field(default_factory=ProfileUpdate)
     reason: str = Field("", description="分类理由，一句话")
+
+
+class ImageFindings(BaseModel):
+    """视觉大模型对医学影像的结构化描述。"""
+    modality: str = Field(description="影像类型，如 CT、MRI、X 光、超声、病理切片、皮肤照片；无法判断写\"无法判断\"")
+    body_part: str = Field(description="部位，如 头部、胸部、膝关节；无法判断写\"无法判断\"")
+    findings: list[str] = Field(description="可见的影像表现，每条一句客观描述，不做诊断，最多 5 条")
+    keywords: list[str] = Field(description="可用于检索医学知识图谱的疾病或症状关键词，最多 5 个")
