@@ -61,6 +61,14 @@ $("#file").onchange = async e => {
 function add(cls, html) { const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html;
   $("#chat").appendChild(d); $("#chat").scrollTop = 1e9; return d; }
 const esc = s => (s || "").replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+function showProfile(p2) { p2 = p2 || {};
+  $("#profile").textContent = "用户档案：" + ([p2.subject, ...(p2.conditions || []), ...(p2.allergies || []).map(a => a + "过敏")].filter(Boolean).join("、") || "（暂无）"); }
+
+// 打开页面时从服务端读回本会话的历史（记忆存在 SQLite 里，刷新页面或重启服务都还在）
+fetch("/history?thread_id=" + threadId).then(r => r.json()).then(h => {
+  for (const t of h.conversation) { add("user", esc(t.user)); add("bot", esc(t.assistant)); }
+  turn = h.conversation.length; showProfile(h.profile);
+});
 
 $("#form").onsubmit = async e => {
   e.preventDefault(); const q = $("#q").value.trim(); if (!q) return;
@@ -87,8 +95,7 @@ $("#form").onsubmit = async e => {
           + (ev.segmented ? `<img src="${ev.segmented}" title="FastSAM 分割结果">` : "")
           + (ev.safety ? `<div class="safety">⚠️ ${esc(ev.safety)}</div>` : "")
           + (ev.evidence.length ? `<details><summary>引用证据（${ev.evidence.length}）</summary>${ev.evidence.map(esc).join("<br>")}</details>` : "");
-        const p2 = ev.profile || {};
-        $("#profile").textContent = "用户档案：" + ([p2.subject, ...(p2.conditions || []), ...(p2.allergies || []).map(a => a + "过敏")].filter(Boolean).join("、") || "（暂无）");
+        showProfile(ev.profile);
       } else if (ev.type === "error") { pending.textContent = "出错了：" + ev.text; }
     }
   }

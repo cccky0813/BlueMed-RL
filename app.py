@@ -5,6 +5,7 @@
   POST /upload_image       上传图片 → 返回 image_id（文件名由服务端生成，不使用用户文件名）
   GET  /image/<image_id>   查看原图；GET /image/<image_id>/seg 查看分割图（只接受合法 image_id）
   POST /ask                {question, image_id?, thread_id} → SSE：每个 Agent 步骤一条 step 事件，最后 answer 事件
+  GET  /history?thread_id= 读回该会话的历史问答和健康档案（服务重启后页面也能恢复对话）
 运行：python app.py  → http://localhost:5002
 """
 
@@ -15,10 +16,13 @@ from flask import Flask, Response, abort, jsonify, render_template, request, sen
 from langchain_core.messages import AIMessage
 
 from bluemed.graph import build_graph
+from bluemed.memory.persistence import open_memory
+from bluemed.memory.profile import load_profile
 from bluemed.tools.image_tools import SEGMENT_DIR, resolve, save_upload
 
 app = Flask(__name__)
-graph = build_graph()            # 全局一个实例：checkpointer（短期记忆）和 store（长期记忆）在多次请求间共享
+checkpointer, store = open_memory()   # 短期 + 长期记忆都存进 data/memory.db，服务重启不丢
+graph = build_graph(checkpointer, store)  # 全局一个实例，在多次请求间共享
 USER_ID = "web_user"             # 演示用固定用户；真实系统应来自登录态
 NODE_NAMES = {"parser": "① Question Parser Agent", "expert": "② Expert Agent", "tools": "🔧 工具",
               "generator": "③ Answer Generator", "reviewer": "③ Answer Reviewer", "remember": "💾 记忆"}
@@ -49,6 +53,13 @@ def describe_step(node: str, update: dict) -> str:
 @app.get("/")
 def index():
     return render_template("index.html")
+
+
+@app.get("/history")
+def history():
+    thread_id = request.args.get("thread_id", "")
+    state = graph.get_state({"configurable": {"thread_id": thread_id}}).values if thread_id else {}
+    return jsonify(conversation=state.get("conversation", []), profile=load_profile(store, USER_ID))
 
 
 @app.post("/upload_image")

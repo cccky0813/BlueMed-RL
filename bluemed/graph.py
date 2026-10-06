@@ -8,10 +8,10 @@
 记忆：
   短期记忆：checkpointer（每个会话一个 thread_id，State 自动持久化，conversation 字段保存问答历史）
   长期记忆：store（按 user_id 保存健康档案，跨会话共享）
+  不传时用内存版（测试 / 脚本）；Web 服务传入 SQLite 版（bluemed/memory/persistence.py），重启不丢
 """
 
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.graph import END, START, StateGraph
 from langgraph.store.memory import InMemoryStore
 
@@ -19,11 +19,8 @@ from bluemed.agents.answer_generator import generator_node
 from bluemed.agents.answer_reviewer import reviewer_node, route_after_review
 from bluemed.agents.expert_agent import expert_node, route_after_expert, tools_node
 from bluemed.agents.parser_agent import parser_node, remember_node, route_after_parser
+from bluemed.memory.persistence import SERDE
 from bluemed.state import AgentState
-
-
-# checkpoint 反序列化白名单：只允许还原我们自己的这几个类型（防止从存储中还原出任意对象）
-SERDE = JsonPlusSerializer(allowed_msgpack_modules=[("bluemed.schemas", n) for n in ("Evidence", "Answer", "Review")])
 
 
 def build_graph(checkpointer=None, store=None):

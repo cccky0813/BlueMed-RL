@@ -17,3 +17,6 @@ PARSER_BASE_URL = os.getenv("PARSER_BASE_URL", "http://localhost:8080/v1")
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "123456789")
+
+# 记忆数据库（短期记忆 checkpoint + 长期记忆档案；data/ 已 gitignore）
+MEMORY_DB = os.getenv("MEMORY_DB", str(ROOT / "data" / "memory.db"))
