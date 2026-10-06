@@ -8,8 +8,12 @@ from pydantic import BaseModel, ValidationError
 from bluemed import config
 
 
-def get_llm(model: str | None = None, temperature: float = 0.0) -> ChatOpenAI:
-    """返回一个 OpenAI 兼容接口的聊天模型。换模型 / 换服务商只需要改 .env。"""
+def get_llm(model: str | None = None, temperature: float = 0.0, thinking: bool = True) -> ChatOpenAI:
+    """返回一个 OpenAI 兼容接口的聊天模型。换模型 / 换服务商只需要改 .env。
+
+    thinking：deepseek-flash 默认先"思考"再回答。按任务分配——
+      需要决策的（Expert 选工具）保留思考；按 schema 填字段的（Parser / Generator / Reviewer）关闭思考，延迟约减半。
+    """
     return ChatOpenAI(
         model=model or config.LLM_MODEL,
         base_url=config.LLM_BASE_URL,
@@ -17,6 +21,7 @@ def get_llm(model: str | None = None, temperature: float = 0.0) -> ChatOpenAI:
         temperature=temperature,
         timeout=60,
         max_retries=2,
+        extra_body=None if thinking else {"thinking": {"type": "disabled"}},
     )
 
 
@@ -33,7 +38,7 @@ def structured_invoke(schema: type[BaseModel], prompt: str, retries: int = 1):
     """
     fields = json.dumps(schema.model_json_schema(), ensure_ascii=False)
     messages = [("user", f"{prompt}\n\n只输出一个 JSON 对象，必须符合下面的 JSON Schema：\n{fields}")]
-    llm = get_llm().bind(response_format={"type": "json_object"})
+    llm = get_llm(thinking=False).bind(response_format={"type": "json_object"})
     for attempt in range(retries + 1):
         reply = llm.invoke(messages)
         try:

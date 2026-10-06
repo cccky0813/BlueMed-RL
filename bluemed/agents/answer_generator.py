@@ -1,6 +1,7 @@
 """③ Answer Agents 之一：Answer Generator。只根据 Expert 收集的证据生成结构化回答（带引用编号）。"""
 
 from bluemed.llm import structured_invoke
+from bluemed.memory.profile import describe
 from bluemed.schemas import Answer, Evidence
 from bluemed.state import AgentState
 
@@ -23,7 +24,9 @@ def format_evidence(evidence: dict[str, Evidence]) -> str:
 
 
 def generator_node(state: AgentState) -> dict:
-    prompt = f"{GENERATOR_PROMPT}\n\n【证据】\n{format_evidence(state.get('evidence', {}))}\n\n【用户问题】\n{state['question']}"
+    prompt = (f"{GENERATOR_PROMPT}\n\n【证据】\n{format_evidence(state.get('evidence', {}))}"
+              f"\n\n【用户档案】（回答时考虑，例如涉及过敏的药物要提醒）\n{describe(state.get('profile') or {})}"
+              f"\n\n【用户问题】\n{state['question']}")
     review = state.get("review")
     if review and review.verdict == "rewrite":                       # 被 Reviewer 打回：带上审核意见重写
         prompt += f"\n\n【上一版回答】\n{state['answer'].answer}\n\n【审核意见，必须针对性修改】\n{review.reason}"

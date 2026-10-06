@@ -4,6 +4,7 @@
 
 import sys
 import time
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -17,10 +18,13 @@ def run(question: str):
     app = build_graph()
     print(f"\n{'=' * 70}\n问题：{question}\n{'=' * 70}")
     start, final = time.perf_counter(), {"question": question}
-    for step in app.stream({"question": question}, stream_mode="updates"):
+    config = {"configurable": {"thread_id": uuid.uuid4().hex, "user_id": "demo"}}
+    for step in app.stream({"user_input": question}, config, stream_mode="updates"):
         for node, update in step.items():
             final.update(update)
-            if node == "expert":
+            if node == "parser":
+                print(f"🧭 Parser  类别={update.get('category')}  改写={update.get('question')}")
+            elif node == "expert":
                 msg = update["messages"][-1]
                 if isinstance(msg, AIMessage) and msg.tool_calls:
                     print("🔬 Expert 调用  " + "；".join(f"{c['name']}({c['args']})" for c in msg.tool_calls))

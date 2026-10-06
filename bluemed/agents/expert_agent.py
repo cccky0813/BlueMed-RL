@@ -40,10 +40,20 @@ def expert_node(state: AgentState) -> dict:
     """思考：模型看到问题和之前所有的工具结果，决定继续调用工具还是结束。"""
     # 次数用完时不再提供工具，模型只能根据已有证据写总结（否则可能停在"想调工具却被拒绝"的状态）
     llm = get_llm() if state.get("tool_calls", 0) >= MAX_TOOL_CALLS else get_llm().bind_tools(KG_TOOLS)
-    messages = state.get("messages") or [("user", state["question"])]
-    reply = llm.invoke([SystemMessage(EXPERT_PROMPT)] + messages)
-    new = [] if state.get("messages") else [("user", state["question"])]
-    return {"messages": new + [reply]}
+    first = [] if state.get("messages") else [("user", _first_message(state))]
+    reply = llm.invoke([SystemMessage(EXPERT_PROMPT)] + (state.get("messages") or []) + first)
+    return {"messages": first + [reply]}
+
+
+def _first_message(state: AgentState) -> str:
+    """本轮第一条消息：问题 + Parser（LoRA 模型）给的解析线索。线索只供参考，Expert 自己决定怎么查。"""
+    parsed = state.get("parsed") or {}
+    hint = ""
+    if parsed.get("entities") or parsed.get("relations"):
+        ents = "、".join(f"{e['name']}({e.get('type', '')})" for e in parsed.get("entities", []))
+        rels = "、".join(r["type"] for r in parsed.get("relations", []))
+        hint = f"\n（解析线索，仅供参考：实体 {ents or '无'}；关系 {rels or '未识别'}）"
+    return state["question"] + hint
 
 
 def tools_node(state: AgentState) -> dict:
