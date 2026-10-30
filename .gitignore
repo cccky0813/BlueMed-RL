@@ -4,3 +4,6 @@ __pycache__/
 .DS_Store
 weights/
 data/
+
+# 面试准备文档，只留在本地
+PLAN.md
