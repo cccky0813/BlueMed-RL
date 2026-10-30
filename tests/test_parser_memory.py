@@ -46,3 +46,18 @@ def test_profile_persists_per_user_in_store():
 def test_evidence_reducer_reset():
     e = Evidence.make("triple", "痛风", "SHOULD_NOT_EAT", "鸡肝")
     assert merge_evidence({e.id: e}, None) == {}                  # None = 新一轮开始，清空工作记忆
+
+
+def test_detect_language():
+    from bluemed.guardrails.input_guard import detect_language
+    assert detect_language("I have urticaria, what can I eat?") == "en"
+    assert detect_language("痛风能喝啤酒吗") == "zh"
+    assert detect_language("gout 能喝啤酒吗") == "zh"                   # 中英混合按中文
+
+
+def test_english_emergency_rule_and_reply():
+    from bluemed.agents.parser_agent import parser_node
+    assert rule_check("My mom has severe Chest Pain") == "emergency"     # 不区分大小写
+    out = parser_node({"user_input": "My dad is unconscious"}, {"configurable": {"user_id": "u"}}, store=InMemoryStore())
+    assert out["category"] == "emergency" and out["language"] == "en"
+    assert "emergency" in out["answer"].answer                         # 规则层拦截，不调大模型，回复用英文

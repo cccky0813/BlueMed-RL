@@ -4,7 +4,7 @@
   GET  /                   页面
   POST /upload_image       上传图片 → 返回 image_id（文件名由服务端生成，不使用用户文件名）
   GET  /image/<image_id>   查看原图；GET /image/<image_id>/seg 查看分割图（只接受合法 image_id）
-  POST /ask                {question, image_id?, thread_id} → SSE：每个 Agent 步骤一条 step 事件，最后 answer 事件
+  POST /ask                {question, image_id?, thread_id, lang?} → SSE：每个 Agent 步骤一条 step 事件，最后 answer 事件
   GET  /history?thread_id= 读回该会话的历史问答和健康档案（服务重启后页面也能恢复对话）
 运行：python app.py  → http://localhost:5002
 """
@@ -24,29 +24,37 @@ app = Flask(__name__)
 checkpointer, store = open_memory()   # 短期 + 长期记忆都存进 data/memory.db，服务重启不丢
 graph = build_graph(checkpointer, store)  # 全局一个实例，在多次请求间共享
 USER_ID = "web_user"             # 演示用固定用户；真实系统应来自登录态
-NODE_NAMES = {"parser": "① Question Parser Agent", "expert": "② Expert Agent", "tools": "🔧 工具",
-              "generator": "③ Answer Generator", "reviewer": "③ Answer Reviewer", "remember": "💾 记忆"}
+NODE_NAMES = {"parser": "① Question Parser Agent", "expert": "② Expert Agent", "generator": "③ Answer Generator",
+              "reviewer": "③ Answer Reviewer", "tools": {"zh": "🔧 工具", "en": "🔧 Tools"}, "remember": {"zh": "💾 记忆", "en": "💾 Memory"}}
 
 
-def describe_step(node: str, update: dict) -> str:
-    """把一个节点的状态更新转成给人看的一行说明。"""
+def node_name(node: str, lang: str) -> str:
+    name = NODE_NAMES.get(node, node)
+    return name[lang] if isinstance(name, dict) else name
+
+
+def describe_step(node: str, update: dict, lang: str = "zh") -> str:
+    """把一个节点的状态更新转成给人看的一行说明（界面语言 zh / en；工具结果是图谱原文，保持中文）。"""
+    en = lang == "en"
     if node == "parser":
-        return f"类别：{update.get('category')}　改写：{update.get('question')}"
+        return (f"category: {update.get('category')}  |  language: {update.get('language')}  |  question for KG retrieval: {update.get('question')}"
+                if en else f"类别：{update.get('category')}　改写：{update.get('question')}")
     if node == "expert":
         msg = update["messages"][-1]
         if isinstance(msg, AIMessage) and msg.tool_calls:
-            return "调用 " + "；".join(f"{c['name']}({json.dumps(c['args'], ensure_ascii=False)})" for c in msg.tool_calls)
+            return ("call " if en else "调用 ") + "；".join(f"{c['name']}({json.dumps(c['args'], ensure_ascii=False)})" for c in msg.tool_calls)
         return msg.content
     if node == "tools":
         return "\n".join(m.content.splitlines()[0][:90] for m in update["messages"])
     if node == "generator":
         a = update["answer"]
-        return f"生成回答：引用 {len(a.citations)} 条证据，证据不足={a.insufficient}"
+        return (f"answer drafted: {len(a.citations)} citations, insufficient={a.insufficient}" if en
+                else f"生成回答：引用 {len(a.citations)} 条证据，证据不足={a.insufficient}")
     if node == "reviewer":
         r = update["review"]
-        return f"{r.verdict}：{r.reason[:120]}"
+        return f"{r.verdict}: {r.reason[:160]}"
     if node == "remember":
-        return "本轮问答已写入会话记忆"
+        return "this turn saved to conversation memory" if en else "本轮问答已写入会话记忆"
     return ""
 
 
@@ -94,13 +102,14 @@ def ask():
     if not question:
         return jsonify(error="问题为空"), 400
     image_id = body.get("image_id") if resolve(body.get("image_id") or "") else None
+    lang = "en" if body.get("lang") == "en" else "zh"
     config = {"configurable": {"thread_id": body.get("thread_id") or uuid.uuid4().hex, "user_id": USER_ID}}
 
     def stream():
         try:
             for step in graph.stream({"user_input": question, "image_id": image_id}, config, stream_mode="updates"):
                 for node, update in step.items():
-                    yield f"data: {json.dumps({'type': 'step', 'node': NODE_NAMES.get(node, node), 'text': describe_step(node, update)}, ensure_ascii=False)}\n\n"
+                    yield f"data: {json.dumps({'type': 'step', 'node': node_name(node, lang), 'text': describe_step(node, update, lang)}, ensure_ascii=False)}\n\n"
             state = graph.get_state(config).values
             answer, evidence = state["answer"], state.get("evidence") or {}
             cited = [evidence[c].to_text() for c in answer.citations if c in evidence]

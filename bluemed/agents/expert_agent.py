@@ -57,7 +57,8 @@ def _first_message(state: AgentState) -> str:
         rels = "、".join(r["type"] for r in parsed.get("relations", []))
         hint = f"\n（解析线索，仅供参考：实体 {ents or '无'}；关系 {rels or '未识别'}）"
     image = f"\n（用户上传了一张医学影像，image_id={state['image_id']}）" if state.get("image_id") else ""
-    return state["question"] + image + hint
+    lang = "\n（用户用英文提问：最后一行总结用英文写，例如 \"Evidence sufficient: …\"）" if state.get("language") == "en" else ""
+    return state["question"] + image + hint + lang
 
 
 def tools_node(state: AgentState) -> dict:

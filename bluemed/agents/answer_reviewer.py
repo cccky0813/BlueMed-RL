@@ -30,7 +30,9 @@ REVIEWER_PROMPT = """你是医学回答审核员（Answer Reviewer）。检查�
    （例如问"并发症的检查"，证据里却只有并发症、没有任何检查），才判 need_evidence，missing 写清还要查什么。
    证据数量少、不够全面，不算证据不足：只要回答如实说明了证据范围（如"图谱只记录了这几项"），就应 pass。
    回答已如实说明"图谱中没有相关信息"时，也应 pass。
-3. 以上都没问题 → verdict = pass。"""
+3. 以上都没问题 → verdict = pass。
+回答可能是英文：证据中的中文名词被准确翻译（如 鸡肝 → chicken liver）仍算有依据，不算证据外的事实；回答语言不是审核问题。
+reason 使用【回答语言】书写。"""
 
 
 def rule_check(question: str, answer: Answer, evidence: dict[str, Evidence]) -> Review | None:
@@ -52,7 +54,8 @@ def reviewer_node(state: AgentState) -> dict:
     review = rule_check(state["question"], answer, evidence)
     if review is None:
         prompt = (f"{REVIEWER_PROMPT}\n\n【证据】\n{format_evidence(evidence)}\n\n【用户问题】\n{state['question']}"
-                  f"\n\n【待审核回答】\n{answer.answer}\n安全提示：{answer.safety_notice}\n标记证据不足：{answer.insufficient}")
+                  f"\n\n【待审核回答】\n{answer.answer}\n安全提示：{answer.safety_notice}\n标记证据不足：{answer.insufficient}"
+                  f"\n\n【回答语言】\n{'English' if state.get('language') == 'en' else '中文'}")
         review = structured_invoke(Review, prompt)
 
     rounds = state.get("review_rounds", 0)

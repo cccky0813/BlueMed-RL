@@ -30,23 +30,45 @@
 </style>
 </head>
 <body>
-<header><h1>BlueMedical v2 · 多 Agent 医疗问答</h1>
-  <div><small id="profile">用户档案：（暂无）</small> <button id="newchat" style="margin-left:8px;background:#64748b">新会话</button></div></header>
+<header><h1 data-i18n="title"></h1>
+  <div><small id="profile"></small>
+    <button id="lang" style="margin-left:8px;background:#64748b"></button>
+    <button id="newchat" style="margin-left:4px;background:#64748b" data-i18n="newchat"></button></div></header>
 <main>
-  <section class="panel"><h2>对话</h2><div id="chat"></div>
+  <section class="panel"><h2 data-i18n="chat"></h2><div id="chat"></div>
     <form id="form">
-      <label class="btn">图片<input id="file" type="file" accept="image/*" hidden></label>
+      <label class="btn"><span data-i18n="image"></span><input id="file" type="file" accept="image/*" hidden></label>
       <span id="preview"></span>
-      <input id="q" type="text" placeholder="例如：我爸有痛风，平时饮食上有什么忌口？" autocomplete="off">
-      <button id="send">发送</button>
+      <input id="q" type="text" autocomplete="off">
+      <button id="send" data-i18n="send"></button>
     </form>
   </section>
-  <section class="panel"><h2>Agent 轨迹（实时）</h2><div id="trace"></div></section>
+  <section class="panel"><h2 data-i18n="trace"></h2><div id="trace"></div></section>
 </main>
 <script>
 const $ = s => document.querySelector(s);
 let threadId = localStorage.getItem("thread") || crypto.randomUUID(); localStorage.setItem("thread", threadId);
-let imageId = null, imageUrl = null, turn = 0;
+let imageId = null, imageUrl = null, turn = 0, profile = {};
+
+// 界面语言（只影响界面文字和轨迹说明；回答语言跟随用户提问的语言，由后端判断）
+const I18N = {
+  en: {title: "BlueMedical v2 · Multi-Agent Medical QA", chat: "Chat", trace: "Agent Trace (live)", image: "Image", send: "Send",
+       newchat: "New chat", switch: "中文", placeholder: "e.g. My father has gout. What foods should he avoid?",
+       profile: "User profile: ", none: "(empty)", allergy: a => "allergic to " + a, thinking: "Thinking…",
+       turn: n => `—— Turn ${n}: `, attached: "Attached ", evidence: n => `Cited evidence (${n})`, seg: "FastSAM segmentation", error: "Error: "},
+  zh: {title: "BlueMedical v2 · 多 Agent 医疗问答", chat: "对话", trace: "Agent 轨迹（实时）", image: "图片", send: "发送",
+       newchat: "新会话", switch: "EN", placeholder: "例如：我爸有痛风，平时饮食上有什么忌口？",
+       profile: "用户档案：", none: "（暂无）", allergy: a => a + "过敏", thinking: "思考中…",
+       turn: n => `—— 第 ${n} 轮：`, attached: "已附加 ", evidence: n => `引用证据（${n}）`, seg: "FastSAM 分割结果", error: "出错了："},
+};
+let lang = "en"; try { lang = localStorage.getItem("lang") || "en"; } catch (e) {}
+const T = () => I18N[lang];
+function applyLang() {
+  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = T()[el.dataset.i18n]);
+  $("#lang").textContent = T().switch; $("#q").placeholder = T().placeholder; document.title = T().title;
+  document.documentElement.lang = lang; showProfile(profile);
+}
+$("#lang").onclick = () => { lang = lang === "en" ? "zh" : "en"; try { localStorage.setItem("lang", lang); } catch (e) {} applyLang(); };
 
 $("#newchat").onclick = () => { threadId = crypto.randomUUID(); localStorage.setItem("thread", threadId);
   $("#chat").innerHTML = ""; $("#trace").innerHTML = ""; turn = 0; };
@@ -55,14 +77,15 @@ $("#file").onchange = async e => {
   const fd = new FormData(); fd.append("image", e.target.files[0]);
   const r = await (await fetch("/upload_image", {method: "POST", body: fd})).json();
   if (r.error) { alert(r.error); return; }
-  imageId = r.image_id; imageUrl = r.url; $("#preview").textContent = "已附加 " + imageId;
+  imageId = r.image_id; imageUrl = r.url; $("#preview").textContent = T().attached + imageId;
 };
 
 function add(cls, html) { const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html;
   $("#chat").appendChild(d); $("#chat").scrollTop = 1e9; return d; }
 const esc = s => (s || "").replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
-function showProfile(p2) { p2 = p2 || {};
-  $("#profile").textContent = "用户档案：" + ([p2.subject, ...(p2.conditions || []), ...(p2.allergies || []).map(a => a + "过敏")].filter(Boolean).join("、") || "（暂无）"); }
+function showProfile(p2) { profile = p2 = p2 || {};
+  $("#profile").textContent = T().profile + ([p2.subject, ...(p2.conditions || []), ...(p2.allergies || []).map(T().allergy)].filter(Boolean).join(", ") || T().none); }
+applyLang();
 
 // 打开页面时从服务端读回本会话的历史（记忆存在 SQLite 里，刷新页面或重启服务都还在）
 fetch("/history?thread_id=" + threadId).then(r => r.json()).then(h => {
@@ -74,10 +97,10 @@ $("#form").onsubmit = async e => {
   e.preventDefault(); const q = $("#q").value.trim(); if (!q) return;
   $("#send").disabled = true; $("#q").value = "";
   add("user", esc(q) + (imageUrl ? `<img src="${imageUrl}">` : ""));
-  const pending = add("bot", "思考中…");
-  $("#trace").insertAdjacentHTML("beforeend", `<div class="turn">—— 第 ${++turn} 轮：${esc(q)}</div>`);
+  const pending = add("bot", T().thinking);
+  $("#trace").insertAdjacentHTML("beforeend", `<div class="turn">${T().turn(++turn)}${esc(q)}</div>`);
   const resp = await fetch("/ask", {method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({question: q, image_id: imageId, thread_id: threadId})});
+    body: JSON.stringify({question: q, image_id: imageId, thread_id: threadId, lang})});
   imageId = imageUrl = null; $("#preview").textContent = "";
   const reader = resp.body.getReader(), dec = new TextDecoder(); let buf = "";
   while (true) {
@@ -92,11 +115,11 @@ $("#form").onsubmit = async e => {
         $("#trace").scrollTop = 1e9;
       } else if (ev.type === "answer") {
         pending.innerHTML = esc(ev.answer)
-          + (ev.segmented ? `<img src="${ev.segmented}" title="FastSAM 分割结果">` : "")
+          + (ev.segmented ? `<img src="${ev.segmented}" title="${T().seg}">` : "")
           + (ev.safety ? `<div class="safety">⚠️ ${esc(ev.safety)}</div>` : "")
-          + (ev.evidence.length ? `<details><summary>引用证据（${ev.evidence.length}）</summary>${ev.evidence.map(esc).join("<br>")}</details>` : "");
+          + (ev.evidence.length ? `<details><summary>${T().evidence(ev.evidence.length)}</summary>${ev.evidence.map(esc).join("<br>")}</details>` : "");
         showProfile(ev.profile);
-      } else if (ev.type === "error") { pending.textContent = "出错了：" + ev.text; }
+      } else if (ev.type === "error") { pending.textContent = T().error + ev.text; }
     }
   }
   $("#send").disabled = false; $("#q").focus();

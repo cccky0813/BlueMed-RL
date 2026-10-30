@@ -24,6 +24,7 @@ class AgentState(TypedDict, total=False):
     question: str                                                  # Parser 改写后、能独立理解的问题（后续 Agent 都用它）
     parsed: dict                                                   # LoRA 解析模型抽取的实体 / 关系（给 Expert 的线索）
     category: str                                                  # medical / emergency / out_of_scope / injection
+    language: str                                                  # 用户提问的语言 zh / en：内部一律用中文检索，回答用用户的语言
     # ---- 记忆
     conversation: Annotated[list[dict], operator.add]              # 短期记忆：本会话的问答历史（追加，随 checkpointer 持久化）
     profile: dict                                                  # 长期记忆：用户健康档案（从 Store 读出，供本轮使用）

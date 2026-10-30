@@ -11,7 +11,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 from langgraph.store.base import BaseStore
 
-from bluemed.guardrails.input_guard import (EMERGENCY_REPLY, INJECTION_REPLY, OUT_OF_SCOPE_REPLY, rule_check)
+from bluemed.guardrails.input_guard import BLOCK_REPLIES, detect_language, rule_check
 from bluemed.llm import structured_invoke
 from bluemed.memory.profile import describe, load_profile, merge_profile, save_profile
 from bluemed.schemas import Answer, ParsedQuery
@@ -19,7 +19,6 @@ from bluemed.state import AgentState
 from bluemed.tools.lora_parser import lora_parse
 
 HISTORY_TURNS = 3            # 上下文工程：只带最近 3 轮，每轮回答截断，控制 prompt 长度
-BLOCK_REPLIES = {"emergency": EMERGENCY_REPLY, "out_of_scope": OUT_OF_SCOPE_REPLY, "injection": INJECTION_REPLY}
 
 PARSER_PROMPT = """你是医疗问答系统的问题解析器（Question Parser Agent）。
 
@@ -31,7 +30,8 @@ PARSER_PROMPT = """你是医疗问答系统的问题解析器（Question Parser 
    - medical：其他医疗健康问题
 2. rewritten_question：结合【对话历史】和【用户档案】，把用户的话改写成一个不依赖上下文、能独立理解的问题。
    把代词替换成具体对象（如"那他能喝啤酒吗" → "痛风患者能喝啤酒吗"）；不要添加用户没说的症状或疾病。
-3. profile_update：只抽取用户原话中明确说出的、值得长期记住的信息（咨询对象、已患疾病、过敏）；不要推断。"""
+   知识图谱是中文的：用户用英文提问时，也要改写成中文问题，医学名词用标准中文名（"I have urticaria, what can I eat?" → "荨麻疹患者宜吃什么食物？"）。
+3. profile_update：只抽取用户原话中明确说出的、值得长期记住的信息（咨询对象、已患疾病、过敏），一律用中文标准名；不要推断。"""
 
 
 def _history_text(conversation: list[dict]) -> str:
@@ -49,7 +49,8 @@ def parser_node(state: AgentState, config: RunnableConfig, *, store: BaseStore =
     user_input = state["user_input"]
     user_id = config.get("configurable", {}).get("user_id", "anonymous")
     profile = load_profile(store, user_id)
-    update = {**_reset_working_memory(), "profile": profile}
+    language = detect_language(user_input)
+    update = {**_reset_working_memory(), "profile": profile, "language": language}
 
     category = rule_check(user_input)                                # 第一层：规则
     parsed = None
@@ -59,8 +60,8 @@ def parser_node(state: AgentState, config: RunnableConfig, *, store: BaseStore =
         parsed = structured_invoke(ParsedQuery, prompt)
         category = parsed.category
 
-    if category in BLOCK_REPLIES:                                    # 拦截：直接给出固定回复，不进入后续 Agent
-        reply = Answer(answer=BLOCK_REPLIES[category], citations=[], safety_notice="", insufficient=True)
+    if category in BLOCK_REPLIES[language]:                          # 拦截：直接给出固定回复（按用户语言），不进入后续 Agent
+        reply = Answer(answer=BLOCK_REPLIES[language][category], citations=[], safety_notice="", insufficient=True)
         return {**update, "category": category, "question": user_input, "answer": reply, "next_step": "remember"}
 
     profile = merge_profile(profile, parsed.profile_update)          # 更新长期记忆
