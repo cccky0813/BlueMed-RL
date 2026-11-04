@@ -1,0 +1,1361 @@
+[
+ {
+  "model": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+  "rows": [
+   {
+    "question": "我爸有痛风，平时不能吃什么？",
+    "latency": 1.985201083123684,
+    "raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"痛风\", \"relation\": \"SHOULD_NOT_EAT\", \"direction\": \"forward\", \"limit\": 15}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"痛风\", \"relation\": \"SHOULD_NOT_EAT\", \"direction\": \"forward\", \"limit\": 15}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "痛风",
+        "relation": "SHOULD_NOT_EAT",
+        "direction": "forward",
+        "limit": 15
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "痛风",
+        "relation": "SHOULD_NOT_EAT",
+        "direction": "forward",
+        "limit": 15
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "痛风",
+        "relation": "SHOULD_NOT_EAT",
+        "direction": "forward",
+        "limit": 15
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "糖尿病要做哪些检查？",
+    "latency": 1.807751541491598,
+    "raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"糖尿病\", \"relation\": \"REQUIRES_CHECK\", \"direction\": \"forward\", \"limit\": 10}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"糖尿病\", \"relation\": \"REQUIRES_CHECK\", \"direction\": \"forward\", \"limit\": 10}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "糖尿病",
+        "relation": "REQUIRES_CHECK",
+        "direction": "forward",
+        "limit": 10
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "糖尿病",
+        "relation": "REQUIRES_CHECK",
+        "direction": "forward",
+        "limit": 10
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "糖尿病",
+        "relation": "REQUIRES_CHECK",
+        "direction": "forward",
+        "limit": 10
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "高血压一般吃什么药？",
+    "latency": 1.752660520374775,
+    "raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"高血压\", \"relation\": \"REQUIRES_DRUG\", \"direction\": \"forward\"}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"高血压\", \"relation\": \"REQUIRES_DRUG\", \"direction\": \"forward\"}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": false,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "高血压",
+        "relation": "REQUIRES_DRUG",
+        "direction": "forward"
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": false,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "高血压",
+        "relation": "REQUIRES_DRUG",
+        "direction": "forward"
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": false,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "高血压",
+        "relation": "REQUIRES_DRUG",
+        "direction": "forward"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "肺炎应该挂什么科？",
+    "latency": 1.4845709162764251,
+    "raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"肺炎\", \"relation\": \"TREATED_BY\"}}\n</tool_call>",
+    "fixed_raw": "证据充分：\"肺炎\"应挂呼吸科。",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "肺炎",
+        "relation": "TREATED_BY"
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "肺炎",
+        "relation": "TREATED_BY"
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "感冒有哪些症状？",
+    "latency": 1.3628196665085852,
+    "raw": "证据充分：找到了感冒相关的多种症状。",
+    "fixed_raw": "证据充分：找到了感冒相关的多种症状。",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "胃炎平时适合吃什么？",
+    "latency": 1.7213495834730566,
+    "raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"胃炎\", \"relation\": \"SHOULD_EAT\", \"direction\": \"forward\", \"limit\": 10}}\n</tool_call>",
+    "fixed_raw": "证据充分：胃炎适合食用的食物通过kg_search查询得到。",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "胃炎",
+        "relation": "SHOULD_EAT",
+        "direction": "forward",
+        "limit": 10
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "胃炎",
+        "relation": "SHOULD_EAT",
+        "direction": "forward",
+        "limit": 10
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "哮喘会有哪些并发症？",
+    "latency": 1.6147684375755489,
+    "raw": "<tool_call>\n{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"哮喘\"]}}\n</tool_call>",
+    "fixed_raw": "证据充分：kg_search('Disease', 'ACCOMPANIES', 'backward')",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": false,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "哮喘"
+        ]
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": false,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "哮喘"
+        ]
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "小孩中耳炎不能吃什么？",
+    "latency": 2.0976113751530647,
+    "raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"小孩中耳炎\", \"relation\": \"SHOULD_NOT_EAT\", \"direction\": \"forward\", \"limit\": 15}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"小孩中耳炎\", \"relation\": \"SHOULD_NOT_EAT\", \"direction\": \"forward\", \"limit\": 10}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "小孩中耳炎",
+        "relation": "SHOULD_NOT_EAT",
+        "direction": "forward",
+        "limit": 15
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "小孩中耳炎",
+        "relation": "SHOULD_NOT_EAT",
+        "direction": "forward",
+        "limit": 15
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "小孩中耳炎",
+        "relation": "SHOULD_NOT_EAT",
+        "direction": "forward",
+        "limit": 10
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "头痛可能是什么病？",
+    "latency": 1.7822551247663796,
+    "raw": "<tool_call>\n{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\"]}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\"]}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "头痛"
+        ]
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "头痛"
+        ]
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "头痛"
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "头痛又发烧，可能是什么病？",
+    "latency": 1.8458077083341777,
+    "raw": "<tool_call>\n{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\", \"发烧\"]}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\", \"发烧\"]}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "头痛",
+         "发烧"
+        ]
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "头痛",
+         "发烧"
+        ]
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "头痛",
+         "发烧"
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "最近咳嗽、胸痛还发热，是什么病？",
+    "latency": 2.0323057710193098,
+    "raw": "<tool_call>\n{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"咳嗽\", \"胸痛\", \"发热\"]}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"咳嗽\", \"胸痛\", \"发热\"]}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "咳嗽",
+         "胸痛",
+         "发热"
+        ]
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "咳嗽",
+         "胸痛",
+         "发热"
+        ]
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "咳嗽",
+         "胸痛",
+         "发热"
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "糖尿病是什么原因引起的？",
+    "latency": 1.7796160210855305,
+    "raw": "<tool_call>\n{\"name\": \"get_disease_info\", \"arguments\": {\"disease\": \"糖尿病\", \"fields\": [\"cause\"]}}\n</tool_call>",
+    "fixed_raw": "证据充分：kg_search查询得到糖尿病的病因信息。",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "get_disease_info",
+       "args": {
+        "disease": "糖尿病",
+        "fields": [
+         "cause"
+        ]
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "get_disease_info",
+       "args": {
+        "disease": "糖尿病",
+        "fields": [
+         "cause"
+        ]
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "怎么预防骨质疏松？",
+    "latency": 1.8886573961935937,
+    "raw": "证据充分：kg_search(entity=\"骨质疏松\", relation=\"prevent\")",
+    "fixed_raw": "证据充分：kg_search(entity=\"骨质疏松\", relation=\"prevent\")",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "白血病的治愈率高吗？",
+    "latency": 1.8019548542797565,
+    "raw": "证据充分：找到了白血病的治愈率信息。",
+    "fixed_raw": "证据充分：\"get_disease_info\"工具可以直接查询疾病的治愈率信息。",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "糖尿病的并发症一般要做哪些检查？",
+    "latency": 2.671133771073073,
+    "raw": "<tool_call>\n{\"name\": \"expand_multi_hop\", \"arguments\": {\"entity\": \"糖尿病\", \"question\": \"糖尿病的并发症要做什么检查\", \"top_k\": 5, \"per_node\": 3}}\n</tool_call>",
+    "fixed_raw": "<tool_call>\n{\"name\": \"expand_multi_hop\", \"arguments\": {\"entity\": \"糖尿病\", \"question\": \"糖尿病的并发症要做什么检查\", \"top_k\": 5, \"per_node\": 3}}\n</tool_call>",
+    "原样": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "expand_multi_hop",
+       "args": {
+        "entity": "糖尿病",
+        "question": "糖尿病的并发症要做什么检查",
+        "top_k": 5,
+        "per_node": 3
+       }
+      }
+     ]
+    },
+    "宽容解析": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "expand_multi_hop",
+       "args": {
+        "entity": "糖尿病",
+        "question": "糖尿病的并发症要做什么检查",
+        "top_k": 5,
+        "per_node": 3
+       }
+      }
+     ]
+    },
+    "修模板": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "expand_multi_hop",
+       "args": {
+        "entity": "糖尿病",
+        "question": "糖尿病的并发症要做什么检查",
+        "top_k": 5,
+        "per_node": 3
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+  "rows": [
+   {
+    "question": "我爸有痛风，平时不能吃什么？",
+    "latency": 1.6043757079169154,
+    "raw": "{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"痛风\", \"relation\": \"SHOULD_NOT_EAT\", \"direction\": \"backward\", \"limit\": 15}}",
+    "fixed_raw": "{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"痛风\", \"relation\": \"SHOULD_NOT_EAT\", \"direction\": \"backward\", \"limit\": 15}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "糖尿病要做哪些检查？",
+    "latency": 1.2603920833207667,
+    "raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"视力模糊\", \"脚趾痛\"]}}",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"视力模糊\", \"脚趾痛\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "高血压一般吃什么药？",
+    "latency": 1.3355990001000464,
+    "raw": "高血压一般吃什么药？",
+    "fixed_raw": "{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"高血压\", \"relation\": \"REQUIRES_CHECK\", \"direction\": \"backward\", \"limit\": 15}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "肺炎应该挂什么科？",
+    "latency": 1.1917710625566542,
+    "raw": "肺炎应该挂呼吸科。",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"发热\", \"咳嗽\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "感冒有哪些症状？",
+    "latency": 1.721293875016272,
+    "raw": "感冒的常见症状包括：\n- 鼻塞\n- 流鼻涕\n- 咳嗽\n- 喉咙痛\n- 肌肉酸痛\n- 头痛\n- 发热\n- 呕吐\n- 腹泻\n\n这些症状可能因人而异，且并非所有感冒患者都会同时出现所有症状。如果出现上述症状，建议及时就医。",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"感冒\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "胃炎平时适合吃什么？",
+    "latency": 3.216030708514154,
+    "raw": "胃炎平时适合吃的食物包括：\n- 清淡易消化的食物，如白粥、面条、蒸蛋等。\n- 低脂、低脂、低脂的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低盐、低盐、低盐的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低糖、低糖、低糖的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低油、低油、低油的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低酸、低酸、低酸的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低辣、低辣、低辣的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低酸、低酸、低酸的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低辣、低辣、低辣的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低酸、低酸、低酸的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低辣、低辣、低辣的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低酸、低酸、低酸的食物，如蒸鱼、蒸肉、蒸蛋等。\n- 低辣、低辣、低辣的食物，如蒸鱼、蒸肉、蒸蛋",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"胃炎\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "哮喘会有哪些并发症？",
+    "latency": 2.645889479201287,
+    "raw": "哮喘是一种常见的慢性呼吸系统疾病，可能会引发多种并发症。根据哮喘患者的具体情况，可能会出现以下并发症：\n\n- **气道阻塞**：长期的哮喘可能导致气道变窄，影响呼吸。\n- **肺功能下降**：长期的哮喘会逐渐损害肺部功能，导致肺功能下降。\n- **肺心病**：长期的哮喘可能导致肺部疾病，进而影响心脏功能，形成肺心病。\n- **肺部感染**：哮喘患者由于气道炎症，容易发生肺部感染，如肺炎等。\n- **心脏问题**：长期的哮喘可能影响心脏功能，导致心脏疾病。\n- **睡眠障碍**：哮喘患者可能会出现睡眠呼吸暂停，影响睡眠质量。\n- **心理健康问题**：长期的哮喘可能影响患者的情绪和心理健康，如焦虑、抑郁等。\n\n哮喘患者应定期进行肺功能检查，及时发现并处理并发症，以改善生活质量。",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"哮喘\", \"气喘\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "小孩中耳炎不能吃什么？",
+    "latency": 1.656385166104883,
+    "raw": "{\"name\": \"kg_search\", \"arguments\": {\"entity\": \"中耳炎\", \"relation\": \"REQUIRES_CHECK\", \"direction\": \"backward\", \"limit\": 15}}",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"中耳炎\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "头痛可能是什么病？",
+    "latency": 1.6352090206928551,
+    "raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\"]}}",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "头痛又发烧，可能是什么病？",
+    "latency": 1.7225267286412418,
+    "raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\", \"发烧\"]}}",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"头痛\", \"发烧\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "最近咳嗽、胸痛还发热，是什么病？",
+    "latency": 1.6850163536146283,
+    "raw": "find_diseases_by_symptoms({\"symptoms\": [\"咳嗽\", \"胸痛\", \"发热\"]})",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"咳嗽\", \"胸痛\", \"发热\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "糖尿病是什么原因引起的？",
+    "latency": 1.6675017923116684,
+    "raw": "{\"name\": \"get_disease_info\", \"arguments\": {\"disease\": \"糖尿病\", \"fields\": [\"cause\"]}}",
+    "fixed_raw": "{\"name\": \"get_disease_info\", \"arguments\": {\"disease\": \"糖尿病\", \"fields\": [\"cause\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "怎么预防骨质疏松？",
+    "latency": 3.1907108752056956,
+    "raw": "预防骨质疏松的方法包括：\n\n1. **保持适当的体重**：过轻或过重都可能增加骨质疏松的风险。保持健康的体重范围，避免极端的体重变化。\n2. **均衡饮食**：摄入足够的钙和维生素D，这些营养素对骨骼健康至关重要。食物来源包括牛奶、奶制品、绿叶蔬菜、坚果和鱼类。\n3. **定期运动**：进行负重运动，如步行、慢跑、跳舞或举重，可以增强骨骼密度。\n4. **避免吸烟**：吸烟会加速骨质流失，增加骨折的风险。\n5. **限制酒精摄入**：过量饮酒会损害骨骼健康，增加骨质疏松的风险。\n6. **避免过度暴露于阳光下**：虽然阳光中的紫外线有助于维生素D的合成，但过度暴露可能增加皮肤癌的风险，因此应避免过度暴露。\n\n通过这些生活方式的调整，可以有效预防骨质疏松。",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"骨质疏松\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "白血病的治愈率高吗？",
+    "latency": 2.0252568535506725,
+    "raw": "证据充分：白血病的治愈率相对较高，具体治愈率受多种因素影响，包括患者年龄、疾病的类型和阶段、治疗方案等。一般来说，早期诊断和及时治疗的白血病患者治愈率较高。建议咨询专业医生获取更准确的数据。",
+    "fixed_raw": "{\"name\": \"get_disease_info\", \"arguments\": {\"disease\": \"白血病\", \"fields\": [\"cured_prob\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   },
+   {
+    "question": "糖尿病的并发症一般要做哪些检查？",
+    "latency": 1.6741847498342395,
+    "raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"视力模糊\", \"脚趾疼痛\"]}}",
+    "fixed_raw": "{\"name\": \"find_diseases_by_symptoms\", \"arguments\": {\"symptoms\": [\"视力模糊\", \"脚趾疼痛\"]}}",
+    "原样": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "宽容解析": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    },
+    "修模板": {
+     "emitted": false,
+     "parsed": false,
+     "correct": false,
+     "calls": []
+    }
+   }
+  ]
+ },
+ {
+  "model": "deepseek (deepseek-flash)",
+  "rows": [
+   {
+    "question": "我爸有痛风，平时不能吃什么？",
+    "latency": 1.310788832604885,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "痛风",
+        "relation": "SHOULD_NOT_EAT",
+        "direction": "forward",
+        "limit": 20
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "糖尿病要做哪些检查？",
+    "latency": 1.0733120422810316,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "糖尿病",
+        "relation": "REQUIRES_CHECK",
+        "direction": "forward"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "高血压一般吃什么药？",
+    "latency": 1.4129696656018496,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "高血压",
+        "relation": "RECOMMENDS_DRUG",
+        "direction": "forward",
+        "limit": 20
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "肺炎应该挂什么科？",
+    "latency": 0.9946524174883962,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": false,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "肺炎",
+        "relation": "BELONGS_TO",
+        "direction": "forward"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "感冒有哪些症状？",
+    "latency": 0.9932357091456652,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "感冒",
+        "relation": "HAS_SYMPTOM",
+        "direction": "forward"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "胃炎平时适合吃什么？",
+    "latency": 1.126672750338912,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "胃炎",
+        "relation": "SHOULD_EAT",
+        "direction": "forward",
+        "limit": 20
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "哮喘会有哪些并发症？",
+    "latency": 1.1963393744081259,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "哮喘",
+        "relation": "ACCOMPANIES",
+        "direction": "forward"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "小孩中耳炎不能吃什么？",
+    "latency": 1.2100785421207547,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "link_entity",
+       "args": {
+        "name": "小孩中耳炎",
+        "node_type": "Disease"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "头痛可能是什么病？",
+    "latency": 1.3126198751851916,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "头痛",
+        "relation": "HAS_SYMPTOM",
+        "direction": "backward",
+        "limit": 20
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "头痛又发烧，可能是什么病？",
+    "latency": 0.8442777078598738,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "头痛",
+         "发烧"
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "最近咳嗽、胸痛还发热，是什么病？",
+    "latency": 1.0546554177999496,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "find_diseases_by_symptoms",
+       "args": {
+        "symptoms": [
+         "咳嗽",
+         "胸痛",
+         "发热"
+        ],
+        "limit": 10
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "糖尿病是什么原因引起的？",
+    "latency": 1.0338778756558895,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "get_disease_info",
+       "args": {
+        "disease": "糖尿病",
+        "fields": [
+         "cause",
+         "desc",
+         "easy_get"
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "怎么预防骨质疏松？",
+    "latency": 1.216320333071053,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "get_disease_info",
+       "args": {
+        "disease": "骨质疏松",
+        "fields": [
+         "prevent",
+         "cause",
+         "easy_get",
+         "desc"
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "白血病的治愈率高吗？",
+    "latency": 1.1883600000292063,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "get_disease_info",
+       "args": {
+        "disease": "白血病",
+        "fields": [
+         "cured_prob",
+         "desc",
+         "cure_lasttime",
+         "easy_get"
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "question": "糖尿病的并发症一般要做哪些检查？",
+    "latency": 1.9849546663463116,
+    "原生": {
+     "emitted": true,
+     "parsed": true,
+     "correct": true,
+     "calls": [
+      {
+       "name": "kg_search",
+       "args": {
+        "entity": "糖尿病",
+        "relation": "ACCOMPANIES",
+        "direction": "forward",
+        "limit": 20
+       }
+      },
+      {
+       "name": "expand_multi_hop",
+       "args": {
+        "entity": "糖尿病",
+        "question": "糖尿病的并发症一般要做哪些检查？",
+        "top_k": 6,
+        "per_node": 3
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+]

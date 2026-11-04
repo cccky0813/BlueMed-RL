@@ -16,6 +16,9 @@ from bluemed.tools.image_tools import analyze_image
 from bluemed.tools.kg_tools import KG_TOOLS
 
 MAX_TOOL_CALLS = 5
+# 两种防护的提示语（rl/env.py 训练环境也用这两句，保证训练和线上看到的文字一样）
+LIMIT_REACHED = f"已达到工具调用上限（{MAX_TOOL_CALLS} 次），请根据已有证据结束。"
+DUPLICATE_CALL = "这个查询已经执行过了，结果见前文，请不要重复调用。"
 EXPERT_TOOLS = KG_TOOLS + [analyze_image]
 TOOLS_BY_NAME = {t.name: t for t in EXPERT_TOOLS}
 
@@ -71,9 +74,9 @@ def tools_node(state: AgentState) -> dict:
     for call in last.tool_calls:
         args_key = json.dumps(call["args"], ensure_ascii=False, sort_keys=True)
         if count >= MAX_TOOL_CALLS:                                   # 防护 1：调用次数上限
-            content, artifact = f"已达到工具调用上限（{MAX_TOOL_CALLS} 次），请根据已有证据结束。", []
+            content, artifact = LIMIT_REACHED, []
         elif (call["name"], args_key) in done:                        # 防护 2：重复调用检测
-            content, artifact = "这个查询已经执行过了，结果见前文，请不要重复调用。", []
+            content, artifact = DUPLICATE_CALL, []
         else:
             msg = TOOLS_BY_NAME[call["name"]].invoke(call)            # 真正执行工具，返回带 artifact 的 ToolMessage
             content, artifact = msg.content, msg.artifact or []

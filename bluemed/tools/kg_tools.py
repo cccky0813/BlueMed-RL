@@ -11,26 +11,31 @@ from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
 from bluemed.embedding import similarity
-from bluemed.kg import run_read
+from bluemed.kg import Neo4jBackend
 from bluemed.schemas import (FIELD_CN, NODE_TYPES, RELATION_CN, RELATIONS, DiseaseField, Evidence,
                              LinkResult, NodeType, Relation)
 
 LINK_THRESHOLD = 0.8
 EXPANDABLE = ["Disease", "Symptom"]       # 多跳只从疾病和症状扩展
 
+# 查询后端：线上是 Neo4j；RL 训练时换成内存版（rl/kg_memory.py），工具逻辑不变
+_backend = Neo4jBackend()
+
+
+def set_backend(backend) -> None:
+    global _backend
+    _backend = backend
+
 
 # ---------------------------------------------------------------- link_entity
 def _link(name: str, node_type: str | None = None) -> LinkResult:
     labels = [node_type] if node_type in NODE_TYPES else sorted(NODE_TYPES)
-    exact = run_read("MATCH (n {name: $name}) WHERE any(l IN labels(n) WHERE l IN $labels) "
-                     "RETURN n.name AS name, labels(n)[0] AS label LIMIT 1", name=name, labels=labels)
+    exact = _backend.exact(name, labels)
     if exact:
-        return LinkResult(query=name, matched=exact[0]["name"], node_type=exact[0]["label"], score=1.0, method="exact")
+        return LinkResult(query=name, matched=exact["name"], node_type=exact["label"], score=1.0, method="exact")
     if len(name) < 2:
         return LinkResult(query=name, matched=None)
-    rows = run_read("MATCH (n) WHERE any(l IN labels(n) WHERE l IN $labels) AND size(n.name) >= 2 "
-                    "AND (n.name CONTAINS $name OR $name CONTAINS n.name) "
-                    "RETURN n.name AS name, labels(n)[0] AS label LIMIT 50", name=name, labels=labels)
+    rows = _backend.contains(name, labels)
     if not rows:
         return LinkResult(query=name, matched=None)
     scores = similarity(name, [r["name"] for r in rows])
@@ -72,11 +77,7 @@ def kg_search(entity: str, relation: str, direction: str = "forward", limit: int
     link = _link(entity)
     if link.matched is None:
         return f"图谱中没有「{entity}」，请先用 link_entity 换个说法确认实体。", []
-    if direction == "forward":
-        cypher = f"MATCH (s {{name: $name}})-[:{relation}]->(t) RETURN s.name AS s, t.name AS t LIMIT $limit"
-    else:
-        cypher = f"MATCH (s)-[:{relation}]->(t {{name: $name}}) RETURN s.name AS s, t.name AS t LIMIT $limit"
-    rows = run_read(cypher, name=link.matched, limit=limit)
+    rows = _backend.relation(link.matched, relation, direction, limit)
 
     note = f"（已将「{entity}」链接为「{link.matched}」）" if link.matched != entity else ""
     if not rows:
@@ -101,8 +102,7 @@ def get_disease_info(disease: str, fields: list[str]):
     link = _link(disease, "Disease")
     if link.matched is None:
         return f"图谱中没有疾病「{disease}」。", []
-    rows = run_read("MATCH (d:Disease {name: $name}) RETURN properties(d) AS p", name=link.matched)
-    props = rows[0]["p"] if rows else {}
+    props = _backend.properties(link.matched)
     evidence = [Evidence.make("attribute", link.matched, f, str(props[f])[:200]) for f in fields if props.get(f)]
     if not evidence:
         return f"「{link.matched}」没有记录这些属性：{'、'.join(FIELD_CN[f] for f in fields)}。", []
@@ -118,15 +118,7 @@ class ExpandArgs(BaseModel):
 
 
 def _neighbors(name: str, per_rel: int) -> list[dict]:
-    # 【修复 v1 问题 1】v1 先 LIMIT 10 再在 Python 里分组，导致只拿到存储顺序靠前的类型；
-    # 这里在 Cypher 里先按关系类型分组，每种类型各取 per_rel 条
-    # 同时按方向分组：同一种关系的出边和入边含义不同（糖尿病→尿毒症 是"糖尿病的并发症"，代谢综合征→糖尿病 则相反）
-    return run_read(
-        "MATCH (a {name: $name})-[r]-(m) "
-        "WITH type(r) AS rel, startNode(r) = a AS outgoing, "
-        "     collect({s: startNode(r).name, t: endNode(r).name, m: m.name, label: labels(m)[0]})[..$k] AS items "
-        "UNWIND items AS it RETURN rel, it.s AS s, it.t AS t, it.m AS m, it.label AS label",
-        name=name, k=per_rel)
+    return _backend.neighbors(name, per_rel)          # 分组规则见 Neo4jBackend.neighbors
 
 
 def _describe(r: dict) -> str:
@@ -183,10 +175,7 @@ def find_diseases_by_symptoms(symptoms: list[str], limit: int = 10):
     names = [n for n in linked.values() if n]
     if not names:
         return f"图谱中没有找到这些症状：{'、'.join(symptoms)}。", []
-    rows = run_read(
-        "UNWIND $names AS s MATCH (d:Disease)-[:HAS_SYMPTOM]->(x {name: s}) "
-        "WITH d, collect(DISTINCT x.name) AS hit RETURN d.name AS d, hit ORDER BY size(hit) DESC, d.name LIMIT $limit",
-        names=names, limit=limit)
+    rows = _backend.diseases_by_symptoms(names, limit)
     evidence = [Evidence.make("triple", r["d"], "HAS_SYMPTOM", s, score=len(r["hit"]) / len(names))
                 for r in rows for s in r["hit"]]
     mapping = "、".join(f"{k}→{v}" for k, v in linked.items() if v and v != k)

@@ -7,3 +7,8 @@ data/
 
 # 面试准备文档，只留在本地
 PLAN.md
+
+# 后训练计划（含简历写法），和 PLAN.md 一样只留在本地
+RL_PLAN.md
+# 评测 / 采集的逐条轨迹（可用 rl.eval、rl.sft_data 重新生成），只提交日志和小结果
+outputs/**/*.jsonl
