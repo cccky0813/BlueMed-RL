@@ -4,6 +4,7 @@
   python -m rl.eval --model mlx-community/Qwen3-4B-Instruct-2507-4bit            # 本地 4B，dev 全部，贪心解码
   python -m rl.eval --model deepseek                                            # DeepSeek（线上 Expert 的模型）
   python -m rl.eval --model <id> --per-type 10 --samples 8 --temperature 1.0    # 每类 10 题，每题 8 次 → pass@8
+  python -m rl.eval --model <本地路径> --engine vllm [--lora <adapter 目录>]   # 服务器上用 vLLM
   python -m rl.eval --summary outputs/eval/xxx.jsonl                            # 只汇总已有结果
 
 结果写到 outputs/eval/<模型>_<split>_t<温度>_k<次数>.jsonl，一行一条轨迹；中断后重跑会跳过做过的。
@@ -18,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from rl.make_questions import OUT_DIR, TYPES
-from rl.rollout import DeepSeekPolicy, MLXPolicy, rollout
+from rl.rollout import DeepSeekPolicy, MLXPolicy, VLLMPolicy, rollout
 
 EVAL_DIR = Path(__file__).resolve().parents[1] / "outputs" / "eval"
 SOLVED = 0.8                        # 总分 ≥ 0.8 算"做对"（pass@k 用）
@@ -47,7 +48,9 @@ def _serialize_embedding() -> None:
 def run(args, qs: list[dict] | None = None) -> Path:
     """qs：只做这些题（rl/sft_data.py 重做没过的题时用），默认按 --split / --per-type 读题。"""
     qs = load_questions(args.split, args.per_type) if qs is None else qs
-    name = "deepseek" if args.model == "deepseek" else args.model.split("/")[-1]
+    name = "deepseek" if args.model == "deepseek" else args.model.rstrip("/").split("/")[-1]
+    if getattr(args, "lora", None):                  # 取最后两级（grpo_b/best → grpo_b-best），否则 B、C 的 best 会撞名
+        name += "+" + "-".join(args.lora.rstrip("/").split("/")[-2:])
     out = EVAL_DIR / f"{name}_{args.split}_t{args.temperature}_k{args.samples}.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {(r["qid"], r["sample"]) for r in map(json.loads, open(out))} if out.exists() else set()
@@ -87,7 +90,8 @@ def run(args, qs: list[dict] | None = None) -> Path:
             if errors:
                 print(f"{errors} 题接口出错没做，重跑同一命令会补上")
         else:
-            policy = MLXPolicy(args.model, temperature=args.temperature)
+            policy = (VLLMPolicy(args.model, temperature=args.temperature, lora=args.lora)
+                      if getattr(args, "engine", "mlx") == "vllm" else MLXPolicy(args.model, temperature=args.temperature))
             for i, item in enumerate(todo):
                 save(i, work(item, policy))
     return out
@@ -146,6 +150,8 @@ if __name__ == "__main__":
     ap.add_argument("--samples", type=int, default=1, help="每题做几次（>1 时算 pass@k）")
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument("--workers", type=int, default=8, help="DeepSeek 并发数")
+    ap.add_argument("--engine", choices=["mlx", "vllm"], default="mlx", help="本地模型用 mlx（Mac）还是 vLLM（服务器）")
+    ap.add_argument("--lora", default=None, help="vLLM 时挂的 LoRA 目录（SFT / GRPO 的输出）")
     ap.add_argument("--summary", default=None, help="只汇总这个结果文件")
     args = ap.parse_args()
     if args.summary:

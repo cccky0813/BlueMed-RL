@@ -101,6 +101,24 @@ class MLXPolicy:
         return parse_qwen(text)
 
 
+class VLLMPolicy:
+    """服务器上的本地模型：vLLM 推理，可挂 SFT / GRPO 训出的 LoRA。模板和解析与 MLXPolicy 相同，结果可直接对比。"""
+    def __init__(self, model_path: str, temperature: float = 0.0, max_tokens: int = 512, lora: str | None = None):
+        from vllm import LLM, SamplingParams
+        from vllm.lora.request import LoRARequest
+        self.model_id = model_path + (f" + {lora}" if lora else "")
+        self.llm = LLM(model_path, enable_lora=bool(lora), max_lora_rank=64, max_model_len=8192,
+                       gpu_memory_utilization=0.85, seed=0)
+        self.tok = self.llm.get_tokenizer()
+        self.params = SamplingParams(temperature=temperature, max_tokens=max_tokens)
+        self.lora = LoRARequest("adapter", 1, lora) if lora else None
+
+    def __call__(self, messages: list[dict], tools: list[dict] | None) -> dict:
+        prompt = self.tok.apply_chat_template(messages, tools=tools, add_generation_prompt=True, tokenize=False)
+        out = self.llm.generate([prompt], self.params, lora_request=self.lora, use_tqdm=False)
+        return parse_qwen(out[0].outputs[0].text)
+
+
 # ---------------------------------------------------------------- DeepSeek（线上 Expert 用的模型，原生 function calling）
 class DeepSeekPolicy:
     def __init__(self, temperature: float = 0.0):
